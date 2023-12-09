@@ -19,14 +19,18 @@ const TILEROW    = 4;                       // タイル行数
 const TILESIZE   = 8;                       // タイルサイズ（ドット）
 const WNDSTYLE   = "rgba( 0, 0, 0, 0.75)";  // ウィンドウの色
 
-let gFrame = 0;                     // 内部カウンタ.
-let gHeight                         // 実画面の高さ
-let gWidth                          // 実画面の幅
-let gImgMap;                        // 画像 マップ
-let gImgPlayer;                     // 画像 プレイヤー
-let gPlayerX = START_X * TILESIZE;  // プレイヤー座標X
-let gPlayerY = START_Y * TILESIZE;  // プレイヤー座標Y
-let gScreen;                        // 仮想画面
+const	gKey = new Uint8Array( 0x100 );		//	キー入力バッファ
+
+let gFrame = 0;                                   // 内部カウンタ.
+let gHeight                                       // 実画面の高さ
+let gWidth                                        // 実画面の幅
+let gMoveX = 0;                                   // 移動量量X
+let gMoveY = 0;                                   // 移動量量Y
+let gImgMap;                                      // 画像 マップ
+let gImgPlayer;                                   // 画像 プレイヤー
+let gPlayerX = START_X * TILESIZE + TILESIZE /2;  // プレイヤー座標X
+let gPlayerY = START_Y * TILESIZE + TILESIZE /2;  // プレイヤー座標Y
+let gScreen;                                      // 仮想画面
 
 const gFileMap    = "img/map.png";
 const gFilePlayer = "img/player.png";
@@ -116,6 +120,29 @@ function LoadImage()
   gImgPlayer = new Image();  gImgPlayer.src = gFilePlayer;  // プレイヤー画像読み込み
 }
 
+// フィールド進行処理
+function TickField()
+{
+
+  if( gMoveX !=0 || gMoveY !=0 ){}            // 移動中はキャンセル
+  else if( gKey[ 37 ] ) gMoveX = -TILESIZE;   // 左
+  else if( gKey[ 38 ] ) gMoveY = -TILESIZE;   // 上
+  else if( gKey[ 39 ] ) gMoveX =  TILESIZE;   // 右
+  else if( gKey[ 40 ] ) gMoveY =  TILESIZE;   // 下
+
+  gPlayerX += Math.sign( gMoveX );            // プレイヤー座標移動X
+  gPlayerY += Math.sign( gMoveY );            // プレイヤー座標移動X
+  gMoveX -= Math.sign( gMoveX );              // 移動料消費X
+  gMoveY -= Math.sign( gMoveY );              // 移動料消費X
+
+  // マップループ処理
+  gPlayerX += ( MAP_WIDTH  * TILESIZE );
+  gPlayerX %= ( MAP_WIDTH  * TILESIZE );
+  gPlayerY += ( MAP_HEIGHT * TILESIZE );
+  gPlayerY %= ( MAP_HEIGHT * TILESIZE );
+
+}
+
 
 function WmPaint()
 {
@@ -153,6 +180,7 @@ function WmSize()
 function WmTimer()
 {
   gFrame++;                     // 内部カウンタを加算
+  TickField();              // フィールド進行処理
   WmPaint();
 }
 // キー入力(DOWN)イベント
@@ -160,16 +188,15 @@ window.onkeydown = function( ev )
 {
   let c = ev.keyCode;       // キーコード取得
 
-  if( c == 37 ) gPlayerX--;  //左
-  if( c == 38 ) gPlayerY--;  //上
-  if( c == 39 ) gPlayerX++;  //右
-  if( c == 40 ) gPlayerY++;  //下
+  gKey[ c ] = 1;
 
-  // マップループ処理
-  gPlayerX += ( MAP_WIDTH  * TILESIZE );
-  gPlayerX %= ( MAP_WIDTH  * TILESIZE );
-  gPlayerY += ( MAP_HEIGHT * TILESIZE );
-  gPlayerY %= ( MAP_HEIGHT * TILESIZE );
+
+}
+
+// キー入力(UP)イベント
+window.onkeyup = function( ev )
+{
+  gKey[ ev.keyCode ] = 0;
 }
 
 //ブラウザ起動イベント
