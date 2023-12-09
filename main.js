@@ -3,7 +3,7 @@
 const CHRHEIGHT  = 9;                       // キャラの高さ
 const CHRWIDTH   = 8;                       // キャラの幅 
 // const FONT    = "12px 'monospace'";        // 使用フォント
-const FONT    = "10px 'monospace'";        // 使用フォント
+const FONT    = "12px 'Ricty Diminished'";        // 使用フォント
 const FONTSTYLE  = "#FFFFFF";               // 文字色
 const HEIGHT     = 120;                     // 仮想画面サイズ：高さ
 const WIDTH      = 128;                     // 仮想画面サイズ：幅
@@ -101,12 +101,15 @@ function DrawMain()
                ( gFrame >> 4 & 1) * CHRWIDTH, gAngle * CHRHEIGHT, CHRWIDTH, CHRHEIGHT,
               WIDTH / 2 - CHRWIDTH / 2, HEIGHT / 2 - CHRHEIGHT + TILESIZE / 2 , CHRWIDTH, CHRHEIGHT);
 
+  g.fillText("魔王を倒して！", 6, 96 );
+  
   g.fillStyle = WNDSTYLE;                     // ウィンドウの色
   g.fillRect( 20, 103, 105, 15 );          
   
   g.font = FONT;                              // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                    // 文字色
   g.fillText("x=" + gPlayerX + " y=" + gPlayerY + " m=" + gMap[ my * MAP_WIDTH + mx ], 25, 115);
+  g.fillText("魔王を倒して！", 6, 76 );
 }
 
 function DrawTile( g, x, y, idx )
