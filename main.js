@@ -27,7 +27,8 @@ let gAngle = 0;                                   // プレイヤーの向き
 let gFrame = 0;                                   // 内部カウンタ.
 let gHeight                                       // 実画面の高さ
 let gWidth                                        // 実画面の幅
-let gMessage = null;                              // 表示メッセージ
+let gMessage1 = null;                             // 表示メッセージ1行目
+let gMessage2 = null;                             // 表示メッセージ2行目
 let gMoveX = 0;                                   // 移動量量X
 let gMoveY = 0;                                   // 移動量量Y
 let gImgMap;                                      // 画像 マップ
@@ -114,15 +115,22 @@ function DrawMain()
   g.fillText("x=" + gPlayerX + " y=" + gPlayerY + " m=" + gMap[ my * MAP_WIDTH + mx ], 25, 15);
 }
 
-function DrawMessage( g )                     // メッセージ描画
+// メッセージ描画
+function DrawMessage( g )                     
 {
-  g.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  g.fillRect( 4, 84, 120, 30 );                // 矩形描画
+  if( !gMessage1 ) {                             // メッセージ内容が存在しない場合
+    return;
+  }
+  g.fillStyle = WNDSTYLE;                       // ウィンドウの色
+  g.fillRect( 4, 84, 120, 30 );                 // 矩形描画
 
-  g.font = FONT;                              // 文字フォントを設定
-  g.fillStyle = FONTSTYLE;                    // 文字色
+  g.font = FONT;                                // 文字フォントを設定
+  g.fillStyle = FONTSTYLE;                      // 文字色
 
-  g.fillText( gMessage, 6, 96 );
+  g.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
+  if( gMessage2 ){
+    g.fillText( gMessage2, 6, 110 );              // メッセージ2行目描画
+  }
 }
 
 function DrawTile( g, x, y, idx )
@@ -136,6 +144,13 @@ function LoadImage()
 {
   gImgMap    = new Image();  gImgMap.src    = gFileMap;     // マップ画像読み込み
   gImgPlayer = new Image();  gImgPlayer.src = gFilePlayer;  // プレイヤー画像読み込み
+}
+
+// メッセージ描画
+function SetMessage( v1, v2)
+{
+  gMessage1 = v1;
+  gMessage2 = v2;
 }
 
 // IE対応
@@ -174,15 +189,33 @@ function TickField()
     gMoveY = 0;                               // 移動禁止Y
   }
 
-  if( m == 8 || m == 9 ){
-    gMessage = "魔王を倒して";
+  if( Math.abs( gMoveX ) + Math.abs( gMoveY ) == SCROLL ){  // マス目移動が終わる直前
+    if( m == 8 || m == 9 ){   // お城
+      SetMessage( "魔王を倒して", null );
+    }
+  
+    if( m == 10 || m == 11 ){   // 街
+      SetMessage( "西の果てにも", "村があります" );
+    }
+  
+    if( m == 12 ){   // 村
+      SetMessage( "カギは、", "洞窟にあります" );
+    }
+  
+    if( m == 13 ){   // 洞窟
+      SetMessage( "カギを手に入れた", null );
+    }
+  
+    if( m == 14 ){   // 扉
+      gPlayerY -= TILESIZE                //1マス上に戻る
+      SetMessage( "カギが必要です", null );
+      // SetMessage( "扉が開いた", null );
+    }
+  
+    if( m == 15 ){   // ボス
+      SetMessage( "魔王を倒し", "世界に平和が訪れた" );
+    }
   }
-
-
-  if( m == 10 || m == 11 ){
-    gMessage = "西の果てにも村があります";
-  }
-
 
   gPlayerX += Sign( gMoveX ) * SCROLL;            // プレイヤー座標移動X
   gPlayerY += Sign( gMoveY ) * SCROLL;            // プレイヤー座標移動X
@@ -243,6 +276,8 @@ window.onkeydown = function( ev )
   let c = ev.keyCode;       // キーコード取得
 
   gKey[ c ] = 1;
+
+  gMessage1 = null;
   
 }
 
