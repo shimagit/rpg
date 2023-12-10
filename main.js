@@ -14,6 +14,7 @@ const SCR_HEIGHT = 8;                       // 画面タイルサイズの半分
 const SCR_WIDTH  = 8;                       // 画面タイルサイズの半分の幅
 const SCROLL     = 2;                       // スクロール速度
 const SMOOTH     = 0;                       // 補間処理
+const START_HP   = 20;                      // 開始HP
 const START_X    = 15;                      // 開始位置X
 const START_Y    = 17;                      // 開始位置Y
 const TILECOLUMN = 4;                       // タイル桁数
@@ -24,6 +25,10 @@ const WNDSTYLE   = "rgba( 0, 0, 0, 0.75)";  // ウィンドウの色
 const	gKey = new Uint8Array( 0x100 );		//	キー入力バッファ
 
 let gAngle = 0;                                   // プレイヤーの向き
+let gEx = 0;                                      // プレイヤーの経験値
+let gHP = START_HP;                               // プレイヤーのHP
+let gMHP = START_HP;                              // プレイヤーの最大HP
+let gLv = 1;                                      // プレイヤーのレベル
 let gFrame = 0;                                   // 内部カウンタ.
 let gHeight                                       // 実画面の高さ
 let gWidth                                        // 実画面の幅
@@ -33,6 +38,7 @@ let gMoveX = 0;                                   // 移動量量X
 let gMoveY = 0;                                   // 移動量量Y
 let gImgMap;                                      // 画像 マップ
 let gImgPlayer;                                   // 画像 プレイヤー
+let gItem  = 0;                                   // 所持アイテム
 let gPlayerX = START_X * TILESIZE + TILESIZE /2;  // プレイヤー座標X
 let gPlayerY = START_Y * TILESIZE + TILESIZE /2;  // プレイヤー座標Y
 let gScreen;                                      // 仮想画面
@@ -104,15 +110,22 @@ function DrawMain()
   g.drawImage( gImgPlayer,
                ( gFrame >> 4 & 1) * CHRWIDTH, gAngle * CHRHEIGHT, CHRWIDTH, CHRHEIGHT,
               WIDTH / 2 - CHRWIDTH / 2, HEIGHT / 2 - CHRHEIGHT + TILESIZE / 2 , CHRWIDTH, CHRHEIGHT);
- 
-  DrawMessage( g );
+
+  // ステータスウィンドウ
+  g.fillStyle = WNDSTYLE;                     // ウィンドウの色
+  g.fillRect( 2, 2, 44, 37 );               // 矩形描画
   
+  DrawStatus( g );                            // ステータス描画
+  DrawMessage( g );                           // メッセージ描画
+  
+  /*
   g.fillStyle = WNDSTYLE;                     // ウィンドウの色
   g.fillRect( 20, 3, 105, 15 );               // 矩形描画   
   
   g.font = FONT;                              // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                    // 文字色
   g.fillText("x=" + gPlayerX + " y=" + gPlayerY + " m=" + gMap[ my * MAP_WIDTH + mx ], 25, 15);
+  */
 }
 
 // メッセージ描画
@@ -121,16 +134,27 @@ function DrawMessage( g )
   if( !gMessage1 ) {                             // メッセージ内容が存在しない場合
     return;
   }
-  g.fillStyle = WNDSTYLE;                       // ウィンドウの色
-  g.fillRect( 4, 84, 120, 30 );                 // 矩形描画
+
+  g.fillStyle = WNDSTYLE;                     // ウィンドウの色
+  g.fillRect( 4, 84, 120, 30 );               // 矩形描画
 
   g.font = FONT;                                // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                      // 文字色
 
   g.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
   if( gMessage2 ){
-    g.fillText( gMessage2, 6, 110 );              // メッセージ2行目描画
+    g.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
   }
+}
+
+// ステータス描画
+function DrawStatus( g )
+{
+  g.font = FONT;                                // 文字フォントを設定
+  g.fillStyle = FONTSTYLE;                      // 文字色
+  g.fillText( "Lv" + gLv, 4, 13 );              // Lv
+  g.fillText( "HP" + gHP, 4, 25 );              // HP
+  g.fillText( "Ex" + gEx, 4, 37 );              // Ex
 }
 
 function DrawTile( g, x, y, idx )
@@ -170,7 +194,7 @@ function Sign( val)
 function TickField()
 {
 
-  if( gMoveX !=0 || gMoveY !=0 ){}            // 移動中はキャンセル
+  if( gMoveX !=0 || gMoveY !=0 || gMessage1 ){}            // 移動中又はメッセージ表示中はキャンセル
   else if( gKey[ 37 ] ){ gAngle = 1; gMoveX = -TILESIZE; }   // 左
   else if( gKey[ 38 ] ){ gAngle = 3; gMoveY = -TILESIZE; }   // 上
   else if( gKey[ 39 ] ){ gAngle = 2; gMoveX =  TILESIZE; }   // 右
@@ -203,17 +227,25 @@ function TickField()
     }
   
     if( m == 13 ){   // 洞窟
+      gItem = 1;     // カギ入手
       SetMessage( "カギを手に入れた", null );
     }
   
     if( m == 14 ){   // 扉
-      gPlayerY -= TILESIZE                //1マス上に戻る
-      SetMessage( "カギが必要です", null );
-      // SetMessage( "扉が開いた", null );
+      if( gItem == 0 ){                   // カギを保持していない場合
+        gPlayerY -= TILESIZE                //1マス上に戻る
+        SetMessage( "カギが必要です", null );
+      }else{
+        SetMessage( "扉が開いた", null );
+      }
     }
   
     if( m == 15 ){   // ボス
       SetMessage( "魔王を倒し", "世界に平和が訪れた" );
+    }
+
+    if( Math.random() * 4 < 1 ){    // ランダムエンカウント
+      SetMessage( "敵が現れた！", null);
     }
   }
 
@@ -274,6 +306,10 @@ function WmTimer()
 window.onkeydown = function( ev )
 {
   let c = ev.keyCode;       // キーコード取得
+
+  if( gKey[c] !=0 ){        // 既にキーを押下中の場合（キーリピート）
+    return;
+  }
 
   gKey[ c ] = 1;
 
