@@ -38,15 +38,17 @@ let gMessage1 = null;                             // 表示メッセージ1行�
 let gMessage2 = null;                             // 表示メッセージ2行目
 let gMoveX = 0;                                   // 移動量量X
 let gMoveY = 0;                                   // 移動量量Y
+let gImgBoss;                                     // 画像 ラスボス
 let gImgMap;                                      // 画像 マップ
 let gImgMonster;                                  // 画像 モンスター
 let gImgPlayer;                                   // 画像 プレイヤー
-let gItem  = 0;                                   // 所持アイテム
+let gItem  = 1;                                   // 所持アイテム
 let gPhase = 0;                                   // 戦闘フェーズ
 let gPlayerX = START_X * TILESIZE + TILESIZE /2;  // プレイヤー座標X
 let gPlayerY = START_Y * TILESIZE + TILESIZE /2;  // プレイヤー座標Y
 let gScreen;                                      // 仮想画面
 
+const gFileBoss    = "img/boss.png";
 const gFileMap     = "img/map.png";
 const gFileMonster = "img/monster.png";
 const gFilePlayer  = "img/player.png";
@@ -97,7 +99,7 @@ const	gMap = [
 
   if ( gPhase == 3 ){
     SetMessage( gMonsterName[ gEnemyType ] + "の攻撃！", 999 + "のダメージ！");
-    gPhase = 7;
+    //gPhase = 7;
     return;
   }
 
@@ -126,6 +128,15 @@ function AddExp( val )
   }
 }
 
+// 敵出現処理
+function AppearEnemy( t )
+{
+  gPhase = 1;                                 // 敵出現フェーズ
+  gEnemyType = t;
+  SetMessage( "敵が現れた！", null );
+}
+
+
 // 戦闘コマンド
 function CommandFight()
 {
@@ -140,11 +151,15 @@ function DrawFight( g )
   g.fillStyle = "#000000";                              // 背景色
   g.fillRect( 0, 0, WIDTH, HEIGHT);                     // 画面全体を矩形描画
 
-  let w = gImgMonster.width / 4;
-  let h = gImgMonster.height;
-
-  g.drawImage( gImgMonster, gEnemyType * w, 0, w, h, Math.floor( WIDTH / 2 ), Math.floor( HEIGHT / 2 ), w,h );     // ↓
-
+  if( gPhase <= 5 ){     // 敵が生存している場合
+    if( IsBoss() ){   // ラスボスの場合
+      g.drawImage( gImgBoss, WIDTH / 2 - gImgBoss.width /2, HEIGHT / 2 ^gImgBoss.height /2 );     // ↓
+    }else{
+      let w = gImgMonster.width / 4;
+      let h = gImgMonster.height;
+      g.drawImage( gImgMonster, gEnemyType * w, 0, w, h, Math.floor( WIDTH / 2 ), Math.floor( HEIGHT / 2 ), w,h );     // ↓
+    }
+  }
  
   DrawStatus( g );                                      // ステータス描画
   DrawMessage( g );                                     // メッセージ描画
@@ -247,8 +262,14 @@ function DrawTile( g, x, y, idx )
   g.drawImage( gImgMap, ix, iy, TILESIZE, TILESIZE, x, y, TILESIZE, TILESIZE );
 }
 
+function IsBoss()
+{
+  return( gEnemyType == gMonsterName.length - 1 );
+}
+
 function LoadImage()
 {
+  gImgBoss    = new Image();  gImgBoss.src    = gFileBoss;    // ラスボス画像読み込み
   gImgMap     = new Image();  gImgMap.src     = gFileMap;     // マップ画像読み込み
   gImgMonster = new Image();  gImgMonster.src = gFileMonster; // モンスター画像読み込み
   gImgPlayer  = new Image();  gImgPlayer.src  = gFilePlayer;  // プレイヤー画像読み込み
@@ -326,13 +347,11 @@ function TickField()
     }
   
     if( m == 15 ){   // ボス
-      SetMessage( "魔王を倒し", "世界に平和が訪れた" );
+      AppearEnemy( gMonsterName.length - 1 );
     }
 
     if( Math.random() * 4 < gEncounter[ m ] ){    // ランダムエンカウント
-      gPhase = 1;                                 // 敵出現フェーズ
-      gEnemyType = 1;
-      SetMessage( "敵が現れた！", null);
+      AppearEnemy( 0 );
     }
   }
 
@@ -432,6 +451,10 @@ window.onkeydown = function( ev )
   }
 
   if( gPhase == 6 ){
+    if ( IsBoss() && gCursor == 0){     // 敵がラスボスで、且つ「戦う」選択時
+      SetMessage( "魔王を倒し", "世界に平和が訪れた" );
+      return;
+    }
     gPhase = 0;           // マップ移動フェーズ
   }
 
