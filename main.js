@@ -1,9 +1,9 @@
 "use strict";
 
-const CHRHEIGHT  = 9;                       // キャラの高さ
+const CHRHEIGHT = 9;                        //  キャラの高さ
 const CHRWIDTH   = 8;                       // キャラの幅 
-// const FONT    = "12px 'monospace'";        // 使用フォント
-const FONT    = "12px 'Ricty Diminished'";        // 使用フォント
+// const FONT    = "12px 'monospace'";      // 使用フォント
+const FONT    = "12px 'Ricty Diminished'";  // 使用フォント
 const FONTSTYLE  = "#FFFFFF";               // 文字色
 const HEIGHT     = 120;                     // 仮想画面サイズ：高さ
 const WIDTH      = 128;                     // 仮想画面サイズ：幅
@@ -29,6 +29,8 @@ let gEx = 0;                                      // プレイヤーの経験値
 let gHP = START_HP;                               // プレイヤーのHP
 let gMHP = START_HP;                              // プレイヤーの最大HP
 let gLv = 1;                                      // プレイヤーのレベル
+let gCursor = 0;                                  // カーソル位置
+let gEnemyType;                                   // 敵種別
 let gFrame = 0;                                   // 内部カウンタ.
 let gHeight                                       // 実画面の高さ
 let gWidth                                        // 実画面の幅
@@ -90,15 +92,27 @@ const	gMap = [
 // 戦闘画面処理
 function DrawFight( g )
 {
-  g.fillStyle = "#000000";
-  g.fillRect( 0, 0, WIDTH, HEIGHT);
+  g.fillStyle = "#000000";                              // 背景色
+  g.fillRect( 0, 0, WIDTH, HEIGHT);                     // 画面全体を矩形描画
 
-  g.drawImage( gImgMonster, WIDTH /2, HEIGHT / 2 );
+  let w = gImgMonster.width / 4;
+  let h = gImgMonster.height;
+
+  g.drawImage( gImgMonster, gEnemyType * w, 0, w, h, Math.floor( WIDTH / 2 ), Math.floor( HEIGHT / 2 ), w,h );     // ↓
+
+ 
+  DrawStatus( g );                                      // ステータス描画
+  DrawMessage( g );                                     // メッセージ描画
+
+  if( gPhase == 2) {                                    // 戦闘フェーズがコマンド選択中の場合
+    g.fillText( "➡︎", 6, 96 + 14 * gCursor );                 // カーソル描画
+  }
+
+   
 }
 
-
-// マップ描画処理
-function DrawMap( g )
+// fフィールド画面描画
+function DrawField( g )
 {
   let   mx = Math.floor( gPlayerX / TILESIZE );     // プレイヤーのタイル座標X
   let   my = Math.floor( gPlayerY / TILESIZE );     // プレイヤーのタイル座標Y
@@ -120,22 +134,26 @@ function DrawMap( g )
   g.drawImage( gImgPlayer,
                ( gFrame >> 4 & 1) * CHRWIDTH, gAngle * CHRHEIGHT, CHRWIDTH, CHRHEIGHT,
               WIDTH / 2 - CHRWIDTH / 2, HEIGHT / 2 - CHRHEIGHT + TILESIZE / 2 , CHRWIDTH, CHRHEIGHT);
+
+   // ステータスウィンドウ
+   g.fillStyle = WNDSTYLE;                     // ウィンドウの色
+   g.fillRect( 2, 2, 44, 37 );               // 矩形描画
+   
+   DrawStatus( g );                            // ステータス描画
+   DrawMessage( g );                           // メッセージ描画
+ 
 }
 function DrawMain()
 {
   const g = gScreen.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
   
   if(gPhase == 0 ){
-    DrawMap( g );                                     // マップ描画
+    DrawField( g );                                     // フィールド画面描画
   }else{
     DrawFight( g );
   }
-  // ステータスウィンドウ
-  g.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  g.fillRect( 2, 2, 44, 37 );               // 矩形描画
+ 
   
-  DrawStatus( g );                            // ステータス描画
-  DrawMessage( g );                           // メッセージ描画
   
   /*
   g.fillStyle = WNDSTYLE;                     // ウィンドウの色
@@ -164,6 +182,7 @@ function DrawMessage( g )
   if( gMessage2 ){
     g.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
   }
+
 }
 
 // ステータス描画
@@ -266,6 +285,7 @@ function TickField()
 
     if( Math.random() * 4 < gEncounter[ m ] ){    // ランダムエンカウント
       gPhase = 1;                                 // 敵出現フェーズ
+      gEnemyType = 1;
       SetMessage( "敵が現れた！", null);
     }
   }
@@ -334,10 +354,26 @@ window.onkeydown = function( ev )
 
   gKey[ c ] = 1;
 
-  if ( gPhase == 1 ){
-    gPhase = 0;
+  if ( gPhase == 1 ){       // 敵が現れた場合
+    gPhase = 2;             // 戦闘コマンド選択フェーズ
+    SetMessage("  戦う","  逃げる");
+    return;
   }
 
+  if( gPhase ==2 ){           // 戦闘コマンド選択中の場合
+    if( c == 13 || c == 90 ){ // Enterキー、又はZキーの場合
+      SetMessage("敵をやっつけた！", null );
+      gPhase = 3;           // マップ移動フェーズ
+    }else{
+      gCursor= 1 - gCursor;  // カーソル移動
+    }
+    return;
+  }
+  if( gPhase == 3 ){
+    gPhase = 0;           // マップ移動フェーズ
+    gHP -= 5;
+    gEx++;
+}
   gMessage1 = null;
   
 }
