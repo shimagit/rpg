@@ -52,6 +52,7 @@ const gFileMonster = "img/monster.png";
 const gFilePlayer  = "img/player.png";
 
 const gEncounter = [ 0, 0, 0, 1, 0, 0, 2, 3, 0, 0, 0, 0, 0, 0, 0, 0 ]; // 敵エンカウント確率
+const gMonsterName =[ "スライム", "うさぎ", "ナイト", "ドラゴン", "魔王"]; // モンスターの名称
 
 // マップ
 const	gMap = [
@@ -95,16 +96,24 @@ const	gMap = [
   gPhase++;                                   // フェーズ経過
 
   if ( gPhase == 3 ){
-    SetMessage( "敵の攻撃！", 999 + "のダメージ！");
+    SetMessage( gMonsterName[ gEnemyType ] + "の攻撃！", 999 + "のダメージ！");
+    gPhase = 7;
     return;
   }
 
   if( gCursor == 0 ){                         // 「戦う」選択時
     SetMessage("あなたの攻撃！", 333 + "のダメージ！" );
+    gPhase = 5;
     return;
   }
-  
-  SetMessage("あなたは逃げ出した！", null );
+
+  if( Math.random() < 0.5 ) {                 // 「逃げる」成功時
+    SetMessage("あなたは逃げ出した！", null );
+    gPhase = 6;
+    return;
+  }
+  // 「逃げる」失敗時
+  SetMessage("あなたは逃げ出した！", "しかし回り込まれた！" );
  }
 
 // 経験値加算
@@ -115,6 +124,14 @@ function AddExp( val )
     gLv++;                                              // レベルアップ
     gMHP += 4 + Math.floor( Math.random() * 3 );        // 最大HP上昇4〜6
   }
+}
+
+// 戦闘コマンド
+function CommandFight()
+{
+  gPhase = 2;             // 戦闘コマンド選択フェーズ
+  gCursor = 0;
+  SetMessage("  戦う","  逃げる");
 }
 
 // 戦闘画面処理
@@ -175,7 +192,7 @@ function DrawMain()
 {
   const g = gScreen.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
   
-  if(gPhase == 0 ){
+  if(gPhase <= 1 ){
     DrawField( g );                                     // フィールド画面描画
   }else{
     DrawFight( g );
@@ -384,7 +401,7 @@ window.onkeydown = function( ev )
   gKey[ c ] = 1;
 
   if ( gPhase == 1 ){       // 敵が現れた場合
-    gPhase = 2;             // 戦闘コマンド選択フェーズ
+    CommandFight();         // 戦闘コマンド選択フェーズ
     SetMessage("  戦う","  逃げる");
     return;
   }
@@ -401,11 +418,34 @@ window.onkeydown = function( ev )
     Action();                 // 戦闘行動処理
     return;
   }
+
   if( gPhase == 4 ){
-    gPhase = 0;           // マップ移動フェーズ
-    gHP -= 5;
+    CommandFight();         // 戦闘コマンド
+    return;
+  }
+
+  if( gPhase == 5 ){
+    gPhase = 6;
+    SetMessage( "敵をやっつけた！", null );
     AddExp( gEnemyType + 1 ); //経験値加算
-}
+    return;
+  }
+
+  if( gPhase == 6 ){
+    gPhase = 0;           // マップ移動フェーズ
+  }
+
+  if( gPhase == 7 ){
+    gPhase = 8;
+    SetMessage( "あなたは死亡した", null );
+    return;
+  }
+
+  if( gPhase == 8 ){
+    SetMessage( "ゲームオーバー", null );
+    return;
+  }
+
   gMessage1 = null;
   
 }
