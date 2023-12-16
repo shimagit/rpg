@@ -88,6 +88,34 @@ const	gMap = [
   7,15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 0, 0, 0, 0, 0,
   7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 7,
  ];
+ 
+ // 戦闘行動処理
+ function Action()
+ {
+  gPhase++;                                   // フェーズ経過
+
+  if ( gPhase == 3 ){
+    SetMessage( "敵の攻撃！", 999 + "のダメージ！");
+    return;
+  }
+
+  if( gCursor == 0 ){                         // 「戦う」選択時
+    SetMessage("あなたの攻撃！", 333 + "のダメージ！" );
+    return;
+  }
+  
+  SetMessage("あなたは逃げ出した！", null );
+ }
+
+// 経験値加算
+function AddExp( val )
+{
+  gEx += val;                                           // 経験値加算
+  while( gLv * (gLv + 1) * 2 <= gEx ){                    // レベルアップ条件を満たしている場合
+    gLv++;                                              // レベルアップ
+    gMHP += 4 + Math.floor( Math.random() * 3 );        // 最大HP上昇4〜6
+  }
+}
 
 // 戦闘画面処理
 function DrawFight( g )
@@ -254,6 +282,7 @@ function TickField()
 
   if( Math.abs( gMoveX ) + Math.abs( gMoveY ) == SCROLL ){  // マス目移動が終わる直前
     if( m == 8 || m == 9 ){   // お城
+      gHP = gMHP                            // HP全回復
       SetMessage( "魔王を倒して", null );
     }
   
@@ -362,17 +391,20 @@ window.onkeydown = function( ev )
 
   if( gPhase ==2 ){           // 戦闘コマンド選択中の場合
     if( c == 13 || c == 90 ){ // Enterキー、又はZキーの場合
-      SetMessage("敵をやっつけた！", null );
-      gPhase = 3;           // マップ移動フェーズ
+      Action();               // 戦闘行動処理
     }else{
       gCursor= 1 - gCursor;  // カーソル移動
     }
     return;
   }
   if( gPhase == 3 ){
+    Action();                 // 戦闘行動処理
+    return;
+  }
+  if( gPhase == 4 ){
     gPhase = 0;           // マップ移動フェーズ
     gHP -= 5;
-    gEx++;
+    AddExp( gEnemyType + 1 ); //経験値加算
 }
   gMessage1 = null;
   
