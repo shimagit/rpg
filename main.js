@@ -12,7 +12,7 @@ const MAP_HEIGHT = 32;                      // マップ高さ
 const MAP_WIDTH  = 32;                      // マップ幅
 const SCR_HEIGHT = 8;                       // 画面タイルサイズの半分の高さ
 const SCR_WIDTH  = 8;                       // 画面タイルサイズの半分の幅
-const SCROLL     = 2;                       // スクロール速度
+const SCROLL     = 1;                       // スクロール速度
 const SMOOTH     = 0;                       // 補間処理
 const START_HP   = 20;                      // 開始HP
 const START_X    = 15;                      // 開始位置X
@@ -30,19 +30,21 @@ let gHP = START_HP;                               // プレイヤーのHP
 let gMHP = START_HP;                              // プレイヤーの最大HP
 let gLv = 1;                                      // プレイヤーのレベル
 let gCursor = 0;                                  // カーソル位置
+let gEnemyHP;                                     // 敵HP
 let gEnemyType;                                   // 敵種別
 let gFrame = 0;                                   // 内部カウンタ.
 let gHeight                                       // 実画面の高さ
 let gWidth                                        // 実画面の幅
-let gMessage1 = null;                             // 表示メッセージ1行目
-let gMessage2 = null;                             // 表示メッセージ2行目
-let gMoveX = 0;                                   // 移動量量X
-let gMoveY = 0;                                   // 移動量量Y
 let gImgBoss;                                     // 画像 ラスボス
 let gImgMap;                                      // 画像 マップ
 let gImgMonster;                                  // 画像 モンスター
 let gImgPlayer;                                   // 画像 プレイヤー
-let gItem  = 1;                                   // 所持アイテム
+let gItem  = 0;                                   // 所持アイテム
+let gMessage1 = null;                             // 表示メッセージ1行目
+let gMessage2 = null;                             // 表示メッセージ2行目
+let gMoveX = 0;                                   // 移動量X
+let gMoveY = 0;                                   // 移動量Y
+let gOrder                                         // 行動順
 let gPhase = 0;                                   // 戦闘フェーズ
 let gPlayerX = START_X * TILESIZE + TILESIZE /2;  // プレイヤー座標X
 let gPlayerY = START_Y * TILESIZE + TILESIZE /2;  // プレイヤー座標Y
@@ -97,15 +99,24 @@ const	gMap = [
  {
   gPhase++;                                   // フェーズ経過
 
-  if ( gPhase == 3 ){
-    SetMessage( gMonsterName[ gEnemyType ] + "の攻撃！", 999 + "のダメージ！");
-    //gPhase = 7;
+  if ( ( ( gPhase + gOrder ) & 1 ) == 0 ){                       // 敵の行動順の場合
+    const  d = GetDamage( gEnemyType + 2 );
+    SetMessage( gMonsterName[ gEnemyType ] + "の攻撃！", d + "のダメージ！");
+    gHP -= d;                               // プレイヤーのHP減少
+    if( gHP <= 0 ){                         // プレイヤーが死亡した場合
+      gPhase = 7;                           // 死亡フェーズ
+    }
     return;
   }
-
+  
+  // プレイヤーの行動順
   if( gCursor == 0 ){                         // 「戦う」選択時
-    SetMessage("あなたの攻撃！", 333 + "のダメージ！" );
-    gPhase = 5;
+    const  d = GetDamage( gLv + 1 );          // ダメージ計算結果取得
+    SetMessage("あなたの攻撃！", d + "のダメージ！" );
+    gEnemyHP -= d;
+    if( gEnemyHP <= 0 ){
+      gPhase = 5;
+    }
     return;
   }
 
@@ -132,6 +143,7 @@ function AddExp( val )
 function AppearEnemy( t )
 {
   gPhase = 1;                                 // 敵出現フェーズ
+  gEnemyHP = t * 3 + 5;                       // 敵HP
   gEnemyType = t;
   SetMessage( "敵が現れた！", null );
 }
@@ -250,9 +262,16 @@ function DrawStatus( g )
 {
   g.font = FONT;                                // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                      // 文字色
-  g.fillText( "Lv" + gLv, 4, 13 );              // Lv
-  g.fillText( "HP" + gHP, 4, 25 );              // HP
-  g.fillText( "Ex" + gEx, 4, 37 );              // Ex
+  g.fillText( "Lv", 4, 13 ); DrawTextR( g, gLv, 36,13 ); // Lv
+  g.fillText( "HP", 4, 25 ); DrawTextR( g, gHP, 36,25 ); // HP
+  g.fillText( "Ex", 4, 37 ); DrawTextR( g, gEx, 36,37 ); // Ex
+}
+
+function DrawTextR( g, str, x, y )
+{
+  g.textAlign = "right";
+  g.fillText( str, x, y );
+  g.textAlign = "left";
 }
 
 function DrawTile( g, x, y, idx )
@@ -260,6 +279,12 @@ function DrawTile( g, x, y, idx )
   const ix = ( idx % TILECOLUMN ) * TILESIZE;
   const iy = Math.floor( idx / TILECOLUMN ) * TILESIZE;
   g.drawImage( gImgMap, ix, iy, TILESIZE, TILESIZE, x, y, TILESIZE, TILESIZE );
+}
+
+// ダメージ量算出
+function GetDamage( a )
+{
+  return( Math.floor( a * ( 1 + Math.random() ) ) ); // 攻撃力の1~2倍
 }
 
 function IsBoss()
@@ -298,6 +323,9 @@ function Sign( val)
 // フィールド進行処理
 function TickField()
 {
+  if ( gPhase !=0 ){
+    return;
+  }
 
   if( gMoveX !=0 || gMoveY !=0 || gMessage1 ){}            // 移動中又はメッセージ表示中はキャンセル
   else if( gKey[ 37 ] ){ gAngle = 1; gMoveX = -TILESIZE; }   // 左
@@ -350,8 +378,19 @@ function TickField()
       AppearEnemy( gMonsterName.length - 1 );
     }
 
-    if( Math.random() * 4 < gEncounter[ m ] ){    // ランダムエンカウント
-      AppearEnemy( 0 );
+    if( Math.random() * 8 < gEncounter[ m ] ){    // ランダムエンカウント
+      let t = Math.abs( gPlayerX / TILESIZE - START_X ) +
+              Math.abs( gPlayerY / TILESIZE - START_Y );
+      if( m == 6 ){     // マップタイプが林だった場合
+        t += 8;                                   // 敵レベルを0.5上昇
+      }
+      if( m == 7 ){     // マップタイプが山だった場合
+        t += 16;                                  // 敵レベルを1上昇
+      }
+      t += Math.random() * 8;                     // 敵レベルを0~0.5上昇
+      t = Math.floor( t / 16 );
+      t = Math.min( t, gMonsterName.length - 2 ); // 上限処理
+      AppearEnemy( t );
     }
   }
 
@@ -404,10 +443,14 @@ function WmSize()
 //タイマーイベント発生時の処理
 function WmTimer()
 {
-  gFrame++;                     // 内部カウンタを加算
-  TickField();              // フィールド進行処理
+  if( !gMessage1 ){
+    gFrame++;                     // 内部カウンタを加算
+    TickField();              // フィールド進行処理
+  }
   WmPaint();
 }
+
+
 // キー入力(DOWN)イベント
 window.onkeydown = function( ev )
 {
@@ -427,6 +470,7 @@ window.onkeydown = function( ev )
 
   if( gPhase ==2 ){           // 戦闘コマンド選択中の場合
     if( c == 13 || c == 90 ){ // Enterキー、又はZキーの場合
+      gOrder = Math.floor( Math.random() * 2 );  // 戦闘行動順
       Action();               // 戦闘行動処理
     }else{
       gCursor= 1 - gCursor;  // カーソル移動
