@@ -48,7 +48,6 @@ let gOrder                                         // 行動順
 let gPhase = 0;                                   // 戦闘フェーズ
 let gPlayerX = START_X * TILESIZE + TILESIZE /2;  // プレイヤー座標X
 let gPlayerY = START_Y * TILESIZE + TILESIZE /2;  // プレイヤー座標Y
-let gScreen;                                      // 仮想画面
 
 const gFileBoss    = "img/boss.png";
 const gFileMap     = "img/map.png";
@@ -217,8 +216,8 @@ function DrawField( g )
 }
 function DrawMain()
 {
-  const g = gScreen.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
-  
+  const g = TUG.GR.mG;             // 仮想画面の2D描画コンテキストを取得
+ 
   if(gPhase <= 1 ){
     DrawField( g );                                     // フィールド画面描画
   }else{
@@ -307,19 +306,6 @@ function SetMessage( v1, v2)
   gMessage2 = v2;
 }
 
-// IE対応
-function Sign( val)
-{
-  if( val == 0 ){
-    return( 0 );
-  }
-  if( val < 0 ){
-    return( -1 );
-  }
-  return( 1 );
-}
-
-
 // フィールド進行処理
 function TickField()
 {
@@ -394,10 +380,10 @@ function TickField()
     }
   }
 
-  gPlayerX += Sign( gMoveX ) * SCROLL;            // プレイヤー座標移動X
-  gPlayerY += Sign( gMoveY ) * SCROLL;            // プレイヤー座標移動X
-  gMoveX -= Sign( gMoveX ) * SCROLL;              // 移動料消費X
-  gMoveY -= Sign( gMoveY ) * SCROLL;              // 移動料消費X
+  gPlayerX += TUG.Sign( gMoveX ) * SCROLL;            // プレイヤー座標移動X
+  gPlayerY += TUG.Sign( gMoveY ) * SCROLL;            // プレイヤー座標移動X
+  gMoveX -= TUG.Sign( gMoveX ) * SCROLL;              // 移動料消費X
+  gMoveY -= TUG.Sign( gMoveY ) * SCROLL;              // 移動料消費X
 
   // マップループ処理
   gPlayerX += ( MAP_WIDTH  * TILESIZE );
@@ -415,7 +401,7 @@ function WmPaint()
   const ca = document.getElementById("main"); // mainキャンバスの要素を取得
   const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
   
-  g.drawImage( gScreen, 0, 0, gScreen.width, gScreen.height, 0, 0,gWidth, gHeight ); // 仮想画面のイメージを実画面に転送
+  g.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,gWidth, gHeight ); // 仮想画面のイメージを実画面に転送
   
 } 
 
@@ -441,11 +427,14 @@ function WmSize()
 
 
 //タイマーイベント発生時の処理
-function WmTimer()
+//function WmTimer()
+TUG.onTimer = function( d )
 {
   if( !gMessage1 ){
-    gFrame++;                     // 内部カウンタを加算
-    TickField();              // フィールド進行処理
+    while( d-- ){
+      gFrame++;                     // 内部カウンタを加算
+      TickField();              // フィールド進行処理
+    }
   }
   WmPaint();
 }
@@ -527,12 +516,9 @@ window.onkeyup = function( ev )
 window.onload = function()
 {
   LoadImage();
-
-  gScreen = document.createElement( "canvas" ); // 仮想画面を作成
-  gScreen.width = WIDTH;                        // 仮想画面の幅を設定
-  gScreen.height = HEIGHT;                      // 仮想画面の高さを設定
-
+  
   WmSize();                                     // 画面サイズ初期化
   window.addEventListener( "resize", function(){ WmSize() } );  //ブラウザサイズ変更時、WmSizeが呼ばれる様指示
-  setInterval( function(){ WmTimer() },INTERVAL );    // 33ms感覚で、WmTimer()を呼び出す様に指示(役30fps)
+  TUG.init();
 }
+
