@@ -13,7 +13,6 @@ const MAP_WIDTH  = 32;                      // マップ幅
 const SCR_HEIGHT = 8;                       // 画面タイルサイズの半分の高さ
 const SCR_WIDTH  = 8;                       // 画面タイルサイズの半分の幅
 const SCROLL     = 1;                       // スクロール速度
-const SMOOTH     = 0;                       // 補間処理
 const START_HP   = 20;                      // 開始HP
 const START_X    = 15;                      // 開始位置X
 const START_Y    = 17;                      // 開始位置Y
@@ -33,8 +32,6 @@ let gCursor = 0;                                  // カーソル位置
 let gEnemyHP;                                     // 敵HP
 let gEnemyType;                                   // 敵種別
 let gFrame = 0;                                   // 内部カウンタ.
-let gHeight                                       // 実画面の高さ
-let gWidth                                        // 実画面の幅
 let gImgBoss;                                     // 画像 ラスボス
 let gImgMap;                                      // 画像 マップ
 let gImgMonster;                                  // 画像 モンスター
@@ -400,31 +397,9 @@ function WmPaint()
 
   const ca = document.getElementById("main"); // mainキャンバスの要素を取得
   const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
-  
-  g.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,gWidth, gHeight ); // 仮想画面のイメージを実画面に転送
+  g.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想画面のイメージを実画面に転送
   
 } 
-
-// ブラウザサイズ変更イベント
-function WmSize()
-{
-  const ca = document.getElementById("main"); // mainキャンバスの要素を取得
-  ca.width = window.innerWidth;               // キャンバスの幅をブラウザの幅へ変更
-  ca.height = window.innerHeight;             // キャンバスの高さをブラウザの高さへ変更
-  
-  const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
-  g.imageSmoothingEnabled = g.imageSmoothingEnabled = SMOOTH;    // 補完処理
-  // じつ画面サイズを計測。ドットのアスペクト比を維持したままでの最大サイズを計算する。
-  gWidth = ca.width;
-  gHeight =ca.height;
-  if( gWidth / WIDTH < gHeight / HEIGHT){
-    gHeight = gWidth * HEIGHT / WIDTH;
-  }else{
-    gWidth = gHeight * WIDTH /HEIGHT;
-  }
-}
-
-
 
 //タイマーイベント発生時の処理
 //function WmTimer()
@@ -517,8 +492,6 @@ window.onload = function()
 {
   LoadImage();
   
-  WmSize();                                     // 画面サイズ初期化
-  window.addEventListener( "resize", function(){ WmSize() } );  //ブラウザサイズ変更時、WmSizeが呼ばれる様指示
   TUG.init();
 }
 
