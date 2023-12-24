@@ -179,25 +179,9 @@ function DrawFight( g )
    
 }
 
-// fフィールド画面描画
+// フィールド画面描画
 function DrawField( g )
 {
-  let   mx = Math.floor( gPlayerX / TILESIZE );     // プレイヤーのタイル座標X
-  let   my = Math.floor( gPlayerY / TILESIZE );     // プレイヤーのタイル座標Y
-
-  for( let dy = -SCR_HEIGHT; dy <= SCR_HEIGHT; dy++ ){
-    let ty = my + dy;                               // タイル座標Y
-    let py = ( ty + MAP_HEIGHT ) % MAP_HEIGHT;      // ループ後タイル座標Y
-    for( let dx = -SCR_WIDTH; dx <= SCR_WIDTH; dx++ ){
-      let tx = mx + dx                              // タイル座標X
-      let px = ( tx + MAP_WIDTH  ) % MAP_WIDTH;     // ループ後タイル座標X
-      DrawTile( g,
-                tx * TILESIZE + WIDTH  /2 - gPlayerX,
-                ty * TILESIZE + HEIGHT /2 - gPlayerY,
-                gMap[ py * MAP_WIDTH + px ]);
-    }
-  }
-
   // プレイヤー
   g.drawImage( gImgPlayer,
                ( gFrame >> 4 & 1) * CHRWIDTH, gAngle * CHRHEIGHT, CHRWIDTH, CHRHEIGHT,
@@ -210,27 +194,6 @@ function DrawField( g )
    DrawStatus( g );                            // ステータス描画
    DrawMessage( g );                           // メッセージ描画
  
-}
-function DrawMain()
-{
-  const g = TUG.GR.mG;             // 仮想画面の2D描画コンテキストを取得
- 
-  if(gPhase <= 1 ){
-    DrawField( g );                                     // フィールド画面描画
-  }else{
-    DrawFight( g );
-  }
- 
-  
-  
-  /*
-  g.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  g.fillRect( 20, 3, 105, 15 );               // 矩形描画   
-  
-  g.font = FONT;                              // 文字フォントを設定
-  g.fillStyle = FONTSTYLE;                    // 文字色
-  g.fillText("x=" + gPlayerX + " y=" + gPlayerY + " m=" + gMap[ my * MAP_WIDTH + mx ], 25, 15);
-  */
 }
 
 // メッセージ描画
@@ -388,30 +351,35 @@ function TickField()
   gPlayerY += ( MAP_HEIGHT * TILESIZE );
   gPlayerY %= ( MAP_HEIGHT * TILESIZE );
 
+  TUG.BG.mX = gPlayerX;
+  TUG.BG.mY = gPlayerY;
+
 }
 
 
-function WmPaint()
+TUG.onPaint = function()
 {
-  DrawMain();
-
-  const ca = document.getElementById("main"); // mainキャンバスの要素を取得
-  const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
-  g.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想画面のイメージを実画面に転送
-  
+  const g = TUG.GR.mG;             // 仮想画面の2D描画コンテキストを取得
+ 
+  if(gPhase <= 1 ){
+    DrawField( g );                                     // フィールド画面描画
+  }else{
+    DrawFight( g );
+  }
 } 
 
 //タイマーイベント発生時の処理
 //function WmTimer()
 TUG.onTimer = function( d )
 {
-  if( !gMessage1 ){
-    while( d-- ){
-      gFrame++;                     // 内部カウンタを加算
-      TickField();              // フィールド進行処理
-    }
+  if( gMessage1 ){
+    return;
   }
-  WmPaint();
+
+  while( d-- ){
+    gFrame++;                     // 内部カウンタを加算
+    TickField();              // フィールド進行処理
+  }
 }
 
 
@@ -492,6 +460,6 @@ window.onload = function()
 {
   LoadImage();
   
-  TUG.init();
+  TUG.init( "main" );
 }
 
