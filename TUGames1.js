@@ -13,12 +13,18 @@ TUG.mSmooth = 0;              // 補間処理
 TUG.onTimer = function(){}
 TUG.onPaint = function(){}
 
+TUG.createCanvas = function( width, height )
+{
+  let r = document.createElement( "canvas" ); // 仮想画面を作成
+  r.width  = width;                           // 仮想画面の幅を設定
+  r.height = height;                          // 仮想画面の高さを設定
+  return( r ); 
+}
+
 TUG.init = function( id )
 {
   TUG.mID = id;
-  TUG.GR.mCanvas = document.createElement( "canvas" ); // 仮想画面を作成
-  TUG.GR.mCanvas.width  = TUG.mWidth;                        // 仮想画面の幅を設定
-  TUG.GR.mCanvas.height = TUG.mHeight;                      // 仮想画面の高さを設定
+  TUG.GR.mCanvas = TUG.createCanvas( TUG.mWidth, TUG.mHeight); // 仮想画面を作成
   TUG.GR.mG = TUG.GR.mCanvas.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
 
   TUG.BG.init( 8, 8, 32, 32 );
@@ -88,7 +94,7 @@ TUG.wmTimer = function()
 
 TUG.BG.draw = function()
 {
-  
+/*  
     let   mx = Math.floor( TUG.BG.mX / TUG.BG.mWidth );     // プレイヤーのタイル座標X
     let   my = Math.floor( TUG.BG.mY / TUG.BG.mHeight );     // プレイヤーのタイル座標Y
   
@@ -101,12 +107,15 @@ TUG.BG.draw = function()
       for( let dx = -SCR_WIDTH; dx <= SCR_WIDTH; dx++ ){
         let tx = mx + dx                              // タイル座標X
         let px = ( tx + TUG.BG.mColumn  ) % TUG.BG.mColumn;     // ループ後タイル座標X
-        DrawTile( TUG.GR.mG,
+        DrawTile( TUG.BG.mG,
                   tx * TUG.BG.mWidth  + TUG.mWidth  /2 - TUG.BG.mX,
                   ty * TUG.BG.mHeight + TUG.mHeight /2 - TUG.BG.mY,
                   TUG.BG.mData[ TUG.BG.getIndex( px, py ) ] );
       }
     }
+  */
+    TUG.GR.mG.drawImage( TUG.BG.mCanvas, -TUG.BG.mX, -TUG.BG.mY );
+    // TUG.GR.mG.drawImage( TUG.BG.mCanvas, 0, 0 );
 }
 
 TUG.BG.getIndex = function( x, y )
@@ -121,11 +130,16 @@ TUG.BG.init = function( width, height, column, row )
   TUG.BG.mColumn = column;      // 桁数
   TUG.BG.mRow    = row;         // 行数
   TUG.BG.mData   = new Uint16Array( column * row );
+  TUG.BG.mCanvas = TUG.createCanvas( width * column, height * row ); // 仮想画面を作成
+  TUG.BG.mG      = TUG.BG.mCanvas.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
 }
 
 TUG.BG.setVal = function( x, y, val )
 {
   TUG.BG.mData[ TUG.BG.getIndex( x, y ) ] = val;
+
+  DrawTile( TUG.BG.mG,
+    x * TUG.BG.mWidth,
+    y * TUG.BG.mHeight,
+    TUG.BG.mData[ TUG.BG.getIndex( x, y ) ] );
 }
-
-

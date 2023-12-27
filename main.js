@@ -252,9 +252,18 @@ function IsBoss()
 function LoadImage()
 {
   gImgBoss    = new Image();  gImgBoss.src    = gFileBoss;    // ラスボス画像読み込み
-  gImgMap     = new Image();  gImgMap.src     = gFileMap;     // マップ画像読み込み
   gImgMonster = new Image();  gImgMonster.src = gFileMonster; // モンスター画像読み込み
   gImgPlayer  = new Image();  gImgPlayer.src  = gFilePlayer;  // プレイヤー画像読み込み
+  gImgMap     = new Image();  gImgMap.src     = gFileMap;     // マップ画像読み込み
+  gImgMap.onload = function()
+  {
+    for( let y = 0; y < MAP_HEIGHT; y++){
+      for( let x = 0; x < MAP_WIDTH; x++){
+        TUG.BG.setVal( x, y, gMap[ y * MAP_WIDTH + x ] );
+      }
+    }
+  }
+
 }
 
 // メッセージ描画
@@ -349,8 +358,8 @@ function TickField()
   gPlayerY += ( MAP_HEIGHT * TILESIZE );
   gPlayerY %= ( MAP_HEIGHT * TILESIZE );
 
-  TUG.BG.mX = gPlayerX;
-  TUG.BG.mY = gPlayerY;
+  TUG.BG.mX = gPlayerX - WIDTH / 2;
+  TUG.BG.mY = gPlayerY - HEIGHT / 2;
 
 }
 
@@ -456,14 +465,8 @@ window.onkeyup = function( ev )
 //ブラウザ起動イベント
 window.onload = function()
 {
-  LoadImage();
-  
   TUG.init( "main" );
-
-  for( let y = 0; y < MAP_HEIGHT; y++){
-    for( let x = 0; x < MAP_WIDTH; x++){
-      TUG.BG.setVal( x, y, gMap[ y * MAP_WIDTH + x ] );
-    }
-  }
+  
+  LoadImage();
 }
 
