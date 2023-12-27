@@ -10,8 +10,6 @@ const WIDTH      = 128;                     // 仮想画面サイズ：幅
 const INTERVAL   = 33;                      // フレーム呼び出し間隔
 const MAP_HEIGHT = 32;                      // マップ高さ
 const MAP_WIDTH  = 32;                      // マップ幅
-const SCR_HEIGHT = 8;                       // 画面タイルサイズの半分の高さ
-const SCR_WIDTH  = 8;                       // 画面タイルサイズの半分の幅
 const SCROLL     = 1;                       // スクロール速度
 const START_HP   = 20;                      // 開始HP
 const START_X    = 15;                      // 開始位置X
@@ -461,5 +459,11 @@ window.onload = function()
   LoadImage();
   
   TUG.init( "main" );
+
+  for( let y = 0; y < MAP_HEIGHT; y++){
+    for( let x = 0; x < MAP_WIDTH; x++){
+      TUG.BG.setVal( x, y, gMap[ y * MAP_WIDTH + x ] );
+    }
+  }
 }
 

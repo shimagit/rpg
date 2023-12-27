@@ -21,7 +21,7 @@ TUG.init = function( id )
   TUG.GR.mCanvas.height = TUG.mHeight;                      // 仮想画面の高さを設定
   TUG.GR.mG = TUG.GR.mCanvas.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
 
-  TUG.BG.init();
+  TUG.BG.init( 8, 8, 32, 32 );
   
   TUG.wmSize();                                     // 画面サイズ初期化
   window.addEventListener( "resize", function(){ TUG.wmSize() } );  //ブラウザサイズ変更時、WmSizeが呼ばれる様指示
@@ -46,7 +46,8 @@ TUG.Sign = function ( val )
 // ブラウザサイズ変更イベント
 TUG.wmSize = function()
 {
-  const ca = TUG.mCanvas = document.getElementById("main"); // mainキャンバスの要素を取得
+  const ca = TUG.mCanvas = document.getElementById( TUG.mID ); // mainキャンバスの要素を取得
+  TUG.mMC = ca.getContext("2d");             // 2D描画コンテキストを取得)
 
   ca.style.position = "absolute";                           // キャンバスの位置を変更可へ
   if( window.innerWidth / TUG.mWidth < window.innerHeight / TUG.mHeight ){    // 縦長画面の場合
@@ -65,31 +66,9 @@ TUG.wmSize = function()
 
 TUG.wmPaint = function()
 {
-  {
-  
-  let   mx = Math.floor( TUG.BG.mX / TUG.BG.mWidth );     // プレイヤーのタイル座標X
-  let   my = Math.floor( TUG.BG.mY / TUG.BG.mHeight );     // プレイヤーのタイル座標Y
-  
-  for( let dy = -SCR_HEIGHT; dy <= SCR_HEIGHT; dy++ ){
-    let ty = my + dy;                               // タイル座標Y
-    let py = ( ty + MAP_HEIGHT ) % MAP_HEIGHT;      // ループ後タイル座標Y
-    for( let dx = -SCR_WIDTH; dx <= SCR_WIDTH; dx++ ){
-      let tx = mx + dx                              // タイル座標X
-      let px = ( tx + MAP_WIDTH  ) % MAP_WIDTH;     // ループ後タイル座標X
-      DrawTile( TUG.GR.mG,
-                tx * TUG.BG.mWidth  + WIDTH  /2 - TUG.BG.mX,
-                ty * TUG.BG.mHeight + HEIGHT /2 - TUG.BG.mY,
-                gMap[ py * MAP_WIDTH + px ]);
-    }
-  }
-}
-
+  TUG.BG.draw();
   TUG.onPaint();
-
-  const ca = document.getElementById( TUG.mID ); // mainキャンバスの要素を取得
-  const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
-  g.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想画面のイメージを実画面に転送
-  
+  TUG.mMC.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想画面のイメージを実画面に転送
 }
 
 TUG.wmTimer = function()
@@ -107,10 +86,46 @@ TUG.wmTimer = function()
   requestAnimationFrame( TUG.wmTimer );
 }
 
-TUG.BG.init = function()
+TUG.BG.draw = function()
 {
-  TUG.BG.mWidth  = 8;
-  TUG.BG.mHeight = 8;
+  
+    let   mx = Math.floor( TUG.BG.mX / TUG.BG.mWidth );     // プレイヤーのタイル座標X
+    let   my = Math.floor( TUG.BG.mY / TUG.BG.mHeight );     // プレイヤーのタイル座標Y
+  
+    let SCR_HEIGHT = 8;                       // 画面タイルサイズの半分の高さ
+    let SCR_WIDTH  = 8;                       // 画面タイルサイズの半分の幅
+    
+    for( let dy = -SCR_HEIGHT; dy <= SCR_HEIGHT; dy++ ){
+      let ty = my + dy;                               // タイル座標Y
+      let py = ( ty + TUG.BG.mRow ) % TUG.BG.mRow;      // ループ後タイル座標Y
+      for( let dx = -SCR_WIDTH; dx <= SCR_WIDTH; dx++ ){
+        let tx = mx + dx                              // タイル座標X
+        let px = ( tx + TUG.BG.mColumn  ) % TUG.BG.mColumn;     // ループ後タイル座標X
+        DrawTile( TUG.GR.mG,
+                  tx * TUG.BG.mWidth  + TUG.mWidth  /2 - TUG.BG.mX,
+                  ty * TUG.BG.mHeight + TUG.mHeight /2 - TUG.BG.mY,
+                  TUG.BG.mData[ TUG.BG.getIndex( px, py ) ] );
+      }
+    }
+}
+
+TUG.BG.getIndex = function( x, y )
+{
+  return( y * TUG.BG.mColumn + x );
+}
+
+TUG.BG.init = function( width, height, column, row )
+{
+  TUG.BG.mWidth  = width;
+  TUG.BG.mHeight = height;
+  TUG.BG.mColumn = column;      // 桁数
+  TUG.BG.mRow    = row;         // 行数
+  TUG.BG.mData   = new Uint16Array( column * row );
+}
+
+TUG.BG.setVal = function( x, y, val )
+{
+  TUG.BG.mData[ TUG.BG.getIndex( x, y ) ] = val;
 }
 
 
