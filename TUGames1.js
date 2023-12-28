@@ -3,6 +3,7 @@
 var TUG = TUG || {};
 TUG.BG = {};
 TUG.GR = {};
+TUG.TX = {};
 
 TUG.mCurrentFrame = 0;        // 経過フレーム数
 TUG.mFPS = 60;                // フレームレート
@@ -10,9 +11,9 @@ TUG.mHeight = 180;            // 仮想画面・高さ
 TUG.mWidth  = 240;            // 仮想画面・幅
 TUG.mSmooth = 0;              // 補間処理
 
-TUG.onKeyDown = function( c){}
+TUG.onKeyDown = function( c ){}
 TUG.onTimer = function(){}
-TUG.onPaint = function(){}
+TUG.onPaint = function( g, tx ){}
 
 TUG.mKey = new Uint8Array( 0x100 );		//	キー入力バッファ
 
@@ -47,8 +48,9 @@ TUG.createCanvas = function( width, height )
 TUG.init = function( id )
 {
   TUG.mID = id;
+  TUG.TX.mCanvas = document.createElement( "canvas" );         // 仮想画面を作成
   TUG.GR.mCanvas = TUG.createCanvas( TUG.mWidth, TUG.mHeight); // 仮想画面を作成
-  TUG.GR.mG = TUG.GR.mCanvas.getContext( "2d" );             // 仮想画面の2D描画コンテキストを取得
+  TUG.GR.mG = TUG.GR.mCanvas.getContext( "2d" );               // 仮想画面の2D描画コンテキストを取得
 
   TUG.BG.init( 8, 8, 32, 32 );
   
@@ -88,6 +90,9 @@ TUG.wmSize = function()
     ca.width = window.innerHeight * TUG.mWidth / TUG.mHeight;
     ca.style.left = Math.floor( ( window.innerWidth - ca.width ) / 2 ) + "px";  // キャンバスの位置を画面中央へ
   }
+  TUG.TX.mCanvas.width  = ca.width;
+  TUG.TX.mCanvas.height = ca.height;
+  TUG.TX.mG = TUG.TX.mCanvas.getContext( "2d" );
 
   const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
   g.imageSmoothingEnabled = g.imageSmoothingEnabled = TUG.mSmooth;    // 補完処理
@@ -96,8 +101,9 @@ TUG.wmSize = function()
 TUG.wmPaint = function()
 {
   TUG.BG.draw();
-  TUG.onPaint();
-  TUG.mMC.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想画面のイメージを実画面に転送
+  TUG.onPaint( TUG.GR.mG, TUG.TX.mG );
+  TUG.mMC.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想グラフィック画面のイメージを実画面に転送
+  TUG.mMC.drawImage( TUG.TX.mCanvas, 0, 0 ); // 仮想テキスト画面のイメージを実画面に転送
 }
 
 TUG.wmTimer = function()
@@ -128,7 +134,7 @@ TUG.BG.draw = function()
     while( sy < 0 ){
       sy += TUG.BG.mCanvas.height;
     }
-    let h = Math.min( TUG.mHeight, TUG.BG.mCanvas.height - sy );
+    let h = Math.min( TUG.mHeight - y, TUG.BG.mCanvas.height - sy );
     let sx = TUG.BG.mX;
     for( let x =0; x < TUG.mWidth;){
       while( sx >= 0 ){
@@ -137,7 +143,7 @@ TUG.BG.draw = function()
       while( sx < 0 ){
         sx += TUG.BG.mCanvas.width;
       }
-      let w  = Math.min( TUG.mWidth , TUG.BG.mCanvas.width  - sx );
+      let w  = Math.min( TUG.mWidth - x, TUG.BG.mCanvas.width  - sx );
       TUG.GR.mG.drawImage( TUG.BG.mCanvas, sx, sy, w, h, x, y, w, h );
       sx += w;
       x += w;

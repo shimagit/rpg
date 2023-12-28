@@ -163,16 +163,7 @@ function DrawFight( g )
       let h = gImgMonster.height;
       g.drawImage( gImgMonster, gEnemyType * w, 0, w, h, Math.floor( WIDTH / 2 ), Math.floor( HEIGHT / 2 ), w,h );     // ↓
     }
-  }
- 
-  DrawStatus( g );                                      // ステータス描画
-  DrawMessage( g );                                     // メッセージ描画
-
-  if( gPhase == 2) {                                    // 戦闘フェーズがコマンド選択中の場合
-    g.fillText( "➡︎", 6, 96 + 14 * gCursor );                 // カーソル描画
-  }
-
-   
+  }  
 }
 
 // フィールド画面描画
@@ -182,14 +173,6 @@ function DrawField( g )
   g.drawImage( gImgPlayer,
                ( gFrame >> 4 & 1) * CHRWIDTH, gAngle * CHRHEIGHT, CHRWIDTH, CHRHEIGHT,
               WIDTH / 2 - CHRWIDTH / 2, HEIGHT / 2 - CHRHEIGHT + TILESIZE / 2 , CHRWIDTH, CHRHEIGHT);
-
-   // ステータスウィンドウ
-   g.fillStyle = WNDSTYLE;                     // ウィンドウの色
-   g.fillRect( 2, 2, 44, 37 );               // 矩形描画
-   
-   DrawStatus( g );                            // ステータス描画
-   DrawMessage( g );                           // メッセージ描画
- 
 }
 
 // メッセージ描画
@@ -362,14 +345,24 @@ function TickField()
 }
 
 
-TUG.onPaint = function()
+TUG.onPaint = function( g, tx )
 {
-  const g = TUG.GR.mG;             // 仮想画面の2D描画コンテキストを取得
  
   if(gPhase <= 1 ){
     DrawField( g );                                     // フィールド画面描画
   }else{
     DrawFight( g );
+  }
+
+  // ステータスウィンドウ
+  tx.fillStyle = WNDSTYLE;                     // ウィンドウの色
+  tx.fillRect( 2, 2, 44, 37 );               // 矩形描画
+  
+  DrawStatus( tx );                                      // ステータス描画
+  DrawMessage( tx );                                     // メッセージ描画
+
+  if( gPhase == 2) {                                    // 戦闘フェーズがコマンド選択中の場合
+    tx.fillText( "➡︎", 6, 96 + 14 * gCursor );                 // カーソル描画
   }
 } 
 
