@@ -5,8 +5,8 @@ const CHRWIDTH   = 8;                       // キャラの幅
 // const FONT    = "12px 'monospace'";      // 使用フォント
 const FONT    = "12px 'Ricty Diminished'";  // 使用フォント
 const FONTSTYLE  = "#FFFFFF";               // 文字色
-const HEIGHT     = 120;                     // 仮想画面サイズ：高さ
-const WIDTH      = 128;                     // 仮想画面サイズ：幅
+const HEIGHT     = 180;                     // 仮想画面サイズ：高さ
+const WIDTH      = 240;                     // 仮想画面サイズ：幅
 const INTERVAL   = 33;                      // フレーム呼び出し間隔
 const MAP_HEIGHT = 32;                      // マップ高さ
 const MAP_WIDTH  = 32;                      // マップ幅
@@ -18,8 +18,6 @@ const TILECOLUMN = 4;                       // タイル桁数
 const TILEROW    = 4;                       // タイル行数
 const TILESIZE   = 8;                       // タイルサイズ（ドット）
 const WNDSTYLE   = "rgba( 0, 0, 0, 0.75)";  // ウィンドウの色
-
-const	gKey = new Uint8Array( 0x100 );		//	キー入力バッファ
 
 let gAngle = 0;                                   // プレイヤーの向き
 let gEx = 0;                                      // プレイヤーの経験値
@@ -281,10 +279,10 @@ function TickField()
   }
 
   if( gMoveX !=0 || gMoveY !=0 || gMessage1 ){}            // 移動中又はメッセージ表示中はキャンセル
-  else if( gKey[ 37 ] ){ gAngle = 1; gMoveX = -TILESIZE; }   // 左
-  else if( gKey[ 38 ] ){ gAngle = 3; gMoveY = -TILESIZE; }   // 上
-  else if( gKey[ 39 ] ){ gAngle = 2; gMoveX =  TILESIZE; }   // 右
-  else if( gKey[ 40 ] ){ gAngle = 0; gMoveY =  TILESIZE; }   // 下
+  else if( TUG.mKey[ 37 ] ){ gAngle = 1; gMoveX = -TILESIZE; }   // 左
+  else if( TUG.mKey[ 38 ] ){ gAngle = 3; gMoveY = -TILESIZE; }   // 上
+  else if( TUG.mKey[ 39 ] ){ gAngle = 2; gMoveX =  TILESIZE; }   // 右
+  else if( TUG.mKey[ 40 ] ){ gAngle = 0; gMoveY =  TILESIZE; }   // 下
 
   // 移動後のタイル座標判定
   let mx = Math.floor( ( gPlayerX + gMoveX ) / TILESIZE ); //移動後のタイル座標X
@@ -343,7 +341,7 @@ function TickField()
       t += Math.random() * 8;                     // 敵レベルを0~0.5上昇
       t = Math.floor( t / 16 );
       t = Math.min( t, gMonsterName.length - 2 ); // 上限処理
-      // AppearEnemy( t );
+      AppearEnemy( t );
     }
   }
 
@@ -377,30 +375,18 @@ TUG.onPaint = function()
 
 //タイマーイベント発生時の処理
 //function WmTimer()
-TUG.onTimer = function( d )
+TUG.onTimer = function()
 {
   if( gMessage1 ){
     return;
   }
-
-  while( d-- ){
-    gFrame++;                     // 内部カウンタを加算
-    TickField();              // フィールド進行処理
-  }
+  gFrame++;                     // 内部カウンタを加算
+  TickField();              // フィールド進行処理
 }
 
 
-// キー入力(DOWN)イベント
-window.onkeydown = function( ev )
+TUG.onKeyDown = function( c )
 {
-  let c = ev.keyCode;       // キーコード取得
-
-  if( gKey[c] !=0 ){        // 既にキーを押下中の場合（キーリピート）
-    return;
-  }
-
-  gKey[ c ] = 1;
-
   if ( gPhase == 1 ){       // 敵が現れた場合
     CommandFight();         // 戦闘コマンド選択フェーズ
     SetMessage("  戦う","  逃げる");
@@ -454,12 +440,6 @@ window.onkeydown = function( ev )
 
   gMessage1 = null;
   
-}
-
-// キー入力(UP)イベント
-window.onkeyup = function( ev )
-{
-  gKey[ ev.keyCode ] = 0;
 }
 
 //ブラウザ起動イベント
