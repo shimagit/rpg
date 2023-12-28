@@ -114,8 +114,20 @@ TUG.BG.draw = function()
       }
     }
   */
-    TUG.GR.mG.drawImage( TUG.BG.mCanvas, -TUG.BG.mX, -TUG.BG.mY );
-    // TUG.GR.mG.drawImage( TUG.BG.mCanvas, 0, 0 );
+ let sy = TUG.BG.mY;
+ let h = Math.min( TUG.mHeight, TUG.BG.mCanvas.height - sy );
+
+ for( let y = 0; y < TUG.mHeight;){
+   let sx = TUG.BG.mX;
+   let w  = Math.min( TUG.mWidth , TUG.BG.mCanvas.width  - sx );
+   for( let x =0; x < TUG.mWidth;){
+     TUG.GR.mG.drawImage( TUG.BG.mCanvas, sx, sy, w, h, x, y, w, h );
+     sx = 0;
+     x += w;
+    }
+    sy = 0;
+    y += h;
+  }
 }
 
 TUG.BG.getIndex = function( x, y )

@@ -343,7 +343,7 @@ function TickField()
       t += Math.random() * 8;                     // 敵レベルを0~0.5上昇
       t = Math.floor( t / 16 );
       t = Math.min( t, gMonsterName.length - 2 ); // 上限処理
-      AppearEnemy( t );
+      // AppearEnemy( t );
     }
   }
 
