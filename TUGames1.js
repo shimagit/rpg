@@ -90,9 +90,13 @@ TUG.wmSize = function()
     ca.width = window.innerHeight * TUG.mWidth / TUG.mHeight;
     ca.style.left = Math.floor( ( window.innerWidth - ca.width ) / 2 ) + "px";  // キャンバスの位置を画面中央へ
   }
+  TUG.mScale = Math.min( ca.width / TUG.mWidth, ca.height / TUG.mHeight );
+
   TUG.TX.mCanvas.width  = ca.width;
   TUG.TX.mCanvas.height = ca.height;
   TUG.TX.mG = TUG.TX.mCanvas.getContext( "2d" );
+
+  TUG.TX.mG.font = ( TUG.mScale * 8) + "px sans-serif";
 
   const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
   g.imageSmoothingEnabled = g.imageSmoothingEnabled = TUG.mSmooth;    // 補完処理
@@ -177,4 +181,17 @@ TUG.BG.setVal = function( x, y, val )
     x * TUG.BG.mWidth,
     y * TUG.BG.mHeight,
     TUG.BG.mData[ TUG.BG.getIndex( x, y ) ] );
+}
+
+TUG.TX.fillRect = function( x, y, width, height, style )
+{
+  if( style ){
+    TUG.TX.mG.fillStyle = style;
+  }
+  TUG.TX.mG.fillRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale)
+}
+
+TUG.TX.fillText = function( text, x, y )
+{
+  TUG.TX.mG.fillText( text, x * TUG.mScale, y * TUG.mScale);
 }

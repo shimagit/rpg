@@ -3,7 +3,7 @@
 const CHRHEIGHT = 9;                        //  キャラの高さ
 const CHRWIDTH   = 8;                       // キャラの幅 
 // const FONT    = "12px 'monospace'";      // 使用フォント
-const FONT    = "12px 'Ricty Diminished'";  // 使用フォント
+// const FONT    = "12px 'Ricty Diminished'";  // 使用フォント
 const FONTSTYLE  = "#FFFFFF";               // 文字色
 const HEIGHT     = 180;                     // 仮想画面サイズ：高さ
 const WIDTH      = 240;                     // 仮想画面サイズ：幅
@@ -182,15 +182,19 @@ function DrawMessage( g )
     return;
   }
 
-  g.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  g.fillRect( 4, 84, 120, 30 );               // 矩形描画
+  TUG.TX.fillRect( 4, 84, 120, 30, WNDSTYLE );
 
-  g.font = FONT;                                // 文字フォントを設定
+  //g.fillStyle = WNDSTYLE;                     // ウィンドウの色
+  //g.fillRect( 4, 84, 120, 30 );               // 矩形描画
+
+  // g.font = FONT;                                // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                      // 文字色
 
-  g.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
+  // g.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
+  TUG.TX.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
   if( gMessage2 ){
-    g.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
+    // g.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
+    TUG.TX.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
   }
 
 }
@@ -198,17 +202,17 @@ function DrawMessage( g )
 // ステータス描画
 function DrawStatus( g )
 {
-  g.font = FONT;                                // 文字フォントを設定
+  // g.font = FONT;                                // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                      // 文字色
-  g.fillText( "Lv", 4, 13 ); DrawTextR( g, gLv, 36,13 ); // Lv
-  g.fillText( "HP", 4, 25 ); DrawTextR( g, gHP, 36,25 ); // HP
-  g.fillText( "Ex", 4, 37 ); DrawTextR( g, gEx, 36,37 ); // Ex
+  TUG.TX.fillText( "Lv", 4, 13 ); DrawTextR( g, gLv, 36,13 ); // Lv
+  TUG.TX.fillText( "HP", 4, 25 ); DrawTextR( g, gHP, 36,25 ); // HP
+  TUG.TX.fillText( "Ex", 4, 37 ); DrawTextR( g, gEx, 36,37 ); // Ex
 }
 
 function DrawTextR( g, str, x, y )
 {
   g.textAlign = "right";
-  g.fillText( str, x, y );
+  TUG.TX.fillText( str, x, y );
   g.textAlign = "left";
 }
 
@@ -355,14 +359,14 @@ TUG.onPaint = function( g, tx )
   }
 
   // ステータスウィンドウ
-  tx.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  tx.fillRect( 2, 2, 44, 37 );               // 矩形描画
+  // tx.fillStyle = WNDSTYLE;                     // ウィンドウの色
+  TUG.TX.fillRect( 2, 2, 44, 37, WNDSTYLE );               // 矩形描画
   
   DrawStatus( tx );                                      // ステータス描画
   DrawMessage( tx );                                     // メッセージ描画
 
   if( gPhase == 2) {                                    // 戦闘フェーズがコマンド選択中の場合
-    tx.fillText( "➡︎", 6, 96 + 14 * gCursor );                 // カーソル描画
+    TUG.TX.fillText( "➡︎", 6, 96 + 14 * gCursor );                 // カーソル描画
   }
 } 
 
