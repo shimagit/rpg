@@ -17,6 +17,7 @@ TUG.onTimer = function(){}
 TUG.onPaint = function( g, tx ){}
 
 TUG.mKey = new Uint8Array( 0x100 );		//	キー入力バッファ
+TUG.ZENKAKU_INT = [ "０", "１", "２", "３", "４", "５", "６", "７", "８", "９" ];
 
 // キー入力(DOWN)イベント
 window.onkeydown = function( ev )
@@ -73,6 +74,17 @@ TUG.Sign = function ( val )
     return( -1 );
   }
   return( 1 );
+}
+
+TUG.ToZenkakuInt = function( val )
+{
+  let r = "";
+  do{
+    r = TUG.ZENKAKU_INT[ val % 10 ] + r;
+    val = Math.floor( val / 10 );
+  }while( val );
+
+  return( r );
 }
 
 // ブラウザサイズ変更イベント
@@ -190,16 +202,27 @@ TUG.TX.clear = function()
   TUG.TX.mG.clearRect( 0, 0, TUG.TX.mCanvas.width, TUG.TX.mCanvas.height );
 }
 
+TUG.TX.clearRect = function( x, y, width, height, style )
+{
+  TUG.TX.mG.clearRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale);
+  if( style ){
+    TUG.TX.fillRect( x, y, width, height, style );
+  }
+}
+
 TUG.TX.fillRect = function( x, y, width, height, style )
 {
   if( style ){
     TUG.TX.mG.fillStyle = style;
   }
-  TUG.TX.mG.fillRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale)
+  TUG.TX.mG.fillRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale);
 }
 
-TUG.TX.fillText = function( text, x, y )
+TUG.TX.fillText = function( text, x, y, style )
 {
+  if( style ){
+    TUG.TX.mG.fillStyle = style;
+  }
   TUG.TX.mG.fillText( text, x * TUG.mScale, y * TUG.mScale);
   if( TUG.mFondBoldV ){
     TUG.TX.mG.fillText( text, x * TUG.mScale, y * TUG.mScale + TUG.mFontBoldV );
@@ -214,5 +237,5 @@ TUG.TX.strokeRect = function( x, y, width, height, style, line )
   if( line ){
     TUG.TX.mG.lineWidth = line * TUG.mScale;
   }
-  TUG.TX.mG.strokeRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale)
+  TUG.TX.mG.strokeRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale);
 }

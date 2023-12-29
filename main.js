@@ -86,6 +86,7 @@ const	gMap = [
   7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 7,
  ];
  
+ const NAME = "ゆうしゃ";
  // 戦闘行動処理
  function Action()
  {
@@ -93,7 +94,7 @@ const	gMap = [
 
   if ( ( ( gPhase + gOrder ) & 1 ) == 0 ){                       // 敵の行動順の場合
     const  d = GetDamage( gEnemyType + 2 );
-    SetMessage( gMonsterName[ gEnemyType ] + "の攻撃！", d + "のダメージ！");
+    SetMessage( gMonsterName[ gEnemyType ] + "の攻撃！", TUG.ToZenkakuInt( d ) + "のダメージ！");
     gHP -= d;                               // プレイヤーのHP減少
     if( gHP <= 0 ){                         // プレイヤーが死亡した場合
       gPhase = 7;                           // 死亡フェーズ
@@ -104,7 +105,7 @@ const	gMap = [
   // プレイヤーの行動順
   if( gCursor == 0 ){                         // 「戦う」選択時
     const  d = GetDamage( gLv + 1 );          // ダメージ計算結果取得
-    SetMessage("あなたの攻撃！", d + "のダメージ！" );
+    SetMessage("あなたの攻撃！", TUG.ToZenkakuInt( d ) + "のダメージ！" );
     gEnemyHP -= d;
     if( gEnemyHP <= 0 ){
       gPhase = 5;
@@ -146,7 +147,7 @@ function CommandFight()
 {
   gPhase = 2;             // 戦闘コマンド選択フェーズ
   gCursor = 0;
-  SetMessage("  戦う","  逃げる");
+  SetMessage("   戦う","   逃げる");
 }
 
 // 戦闘画面処理
@@ -198,10 +199,11 @@ function DrawStatus( g )
 {
   DrawWindow( 12, 12, 56, 56 );
 
-  g.fillStyle = FONTSTYLE;                      // 文字色
-  TUG.TX.fillText( "Lv", 16, 26 ); DrawTextR( g, gLv, 48,26 ); // Lv
-  TUG.TX.fillText( "HP", 16, 40 ); DrawTextR( g, gHP, 48,40 ); // HP
-  TUG.TX.fillText( "Ex", 16, 54 ); DrawTextR( g, gEx, 48,54 ); // Ex
+  TUG.TX.clearRect( 24, 12, 32, 8, WNDSTYLE );
+  TUG.TX.fillText( NAME,   24, 12, FONTSTYLE );
+  TUG.TX.fillText( "ＬＶ", 16, 26 ); DrawTextR( g, TUG.ToZenkakuInt( gLv ), 64,26 ); // Lv
+  TUG.TX.fillText( "ＨＰ", 16, 40 ); DrawTextR( g, TUG.ToZenkakuInt( gHP ), 64,40 ); // HP
+  TUG.TX.fillText( "ＥＸ", 16, 54 ); DrawTextR( g, TUG.ToZenkakuInt( gEx ), 64,54 ); // Ex
 }
 
 function DrawTextR( g, str, x, y )
@@ -363,7 +365,7 @@ TUG.onPaint = function( g, tx )
   DrawMessage( tx );                                     // メッセージ描画
 
   if( gPhase == 2) {                                    // 戦闘フェーズがコマンド選択中の場合
-    TUG.TX.fillText( "➡︎", 6, 96 + 14 * gCursor );                 // カーソル描画
+    TUG.TX.fillText( "➡︎", 48, 120 + 14 * gCursor );                 // カーソル描画
   }
 } 
 
@@ -383,7 +385,7 @@ TUG.onKeyDown = function( c )
 {
   if ( gPhase == 1 ){       // 敵が現れた場合
     CommandFight();         // 戦闘コマンド選択フェーズ
-    SetMessage("  戦う","  逃げる");
+    SetMessage("   戦う","   逃げる");
     return;
   }
 
