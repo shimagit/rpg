@@ -182,31 +182,26 @@ function DrawMessage( g )
     return;
   }
 
-  TUG.TX.fillRect( 4, 84, 120, 30, WNDSTYLE );
+  DrawWindow( 40, 108, 160, 68 );
+  // TUG.TX.fillRect( 4, 84, 120, 30, WNDSTYLE );
 
-  //g.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  //g.fillRect( 4, 84, 120, 30 );               // 矩形描画
-
-  // g.font = FONT;                                // 文字フォントを設定
   g.fillStyle = FONTSTYLE;                      // 文字色
 
-  // g.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
-  TUG.TX.fillText( gMessage1, 6,  96 );               // メッセージ1行目描画
+  TUG.TX.fillText( gMessage1, 48, 120 );               // メッセージ1行目描画
   if( gMessage2 ){
-    // g.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
-    TUG.TX.fillText( gMessage2, 6, 110 );             // メッセージ2行目描画
+    TUG.TX.fillText( gMessage2, 48, 120 + 14 );             // メッセージ2行目描画
   }
-
 }
 
 // ステータス描画
 function DrawStatus( g )
 {
-  // g.font = FONT;                                // 文字フォントを設定
+  DrawWindow( 12, 12, 56, 56 );
+
   g.fillStyle = FONTSTYLE;                      // 文字色
-  TUG.TX.fillText( "Lv", 4, 13 ); DrawTextR( g, gLv, 36,13 ); // Lv
-  TUG.TX.fillText( "HP", 4, 25 ); DrawTextR( g, gHP, 36,25 ); // HP
-  TUG.TX.fillText( "Ex", 4, 37 ); DrawTextR( g, gEx, 36,37 ); // Ex
+  TUG.TX.fillText( "Lv", 16, 26 ); DrawTextR( g, gLv, 48,26 ); // Lv
+  TUG.TX.fillText( "HP", 16, 40 ); DrawTextR( g, gHP, 48,40 ); // HP
+  TUG.TX.fillText( "Ex", 16, 54 ); DrawTextR( g, gEx, 48,54 ); // Ex
 }
 
 function DrawTextR( g, str, x, y )
@@ -221,6 +216,12 @@ function DrawTile( g, x, y, idx )
   const ix = ( idx % TILECOLUMN ) * TILESIZE;
   const iy = Math.floor( idx / TILECOLUMN ) * TILESIZE;
   g.drawImage( gImgMap, ix, iy, TILESIZE, TILESIZE, x, y, TILESIZE, TILESIZE );
+}
+
+function DrawWindow( x, y, width, height )
+{
+  TUG.TX.fillRect( x, y, width, height, WNDSTYLE );
+  TUG.TX.strokeRect( x + 1.5, y + 1.5, width - 3, height - 3, "#ffffff", 1.25 );
 }
 
 // ダメージ量算出
@@ -357,11 +358,7 @@ TUG.onPaint = function( g, tx )
   }else{
     DrawFight( g );
   }
-
-  // ステータスウィンドウ
-  // tx.fillStyle = WNDSTYLE;                     // ウィンドウの色
-  TUG.TX.fillRect( 2, 2, 44, 37, WNDSTYLE );               // 矩形描画
-  
+ 
   DrawStatus( tx );                                      // ステータス描画
   DrawMessage( tx );                                     // メッセージ描画
 

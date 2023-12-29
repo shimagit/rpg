@@ -7,6 +7,7 @@ TUG.TX = {};
 
 TUG.mCurrentFrame = 0;        // 経過フレーム数
 TUG.mFPS = 60;                // フレームレート
+TUG.mFontBoldV = 1;                // フレームレート
 TUG.mHeight = 180;            // 仮想画面・高さ
 TUG.mWidth  = 240;            // 仮想画面・幅
 TUG.mSmooth = 0;              // 補間処理
@@ -95,8 +96,8 @@ TUG.wmSize = function()
   TUG.TX.mCanvas.width  = ca.width;
   TUG.TX.mCanvas.height = ca.height;
   TUG.TX.mG = TUG.TX.mCanvas.getContext( "2d" );
-
   TUG.TX.mG.font = ( TUG.mScale * 8) + "px sans-serif";
+  TUG.TX.mG.textBaseline = "top";
 
   const g  = ca.getContext("2d");             // 2D描画コンテキストを取得)
   g.imageSmoothingEnabled = g.imageSmoothingEnabled = TUG.mSmooth;    // 補完処理
@@ -104,6 +105,7 @@ TUG.wmSize = function()
 
 TUG.wmPaint = function()
 {
+  TUG.TX.clear();
   TUG.BG.draw();
   TUG.onPaint( TUG.GR.mG, TUG.TX.mG );
   TUG.mMC.drawImage( TUG.GR.mCanvas, 0, 0, TUG.GR.mCanvas.width, TUG.GR.mCanvas.height, 0, 0,TUG.mCanvas.width, TUG.mCanvas.height ); // 仮想グラフィック画面のイメージを実画面に転送
@@ -132,7 +134,7 @@ TUG.BG.draw = function()
   let sy = TUG.BG.mY;
  
   for( let y = 0; y < TUG.mHeight;){
-    while( sy >= 0 ){
+    while( sy >= TUG.BG.mCanvas.height ){
       sy -= TUG.BG.mCanvas.height;
     }
     while( sy < 0 ){
@@ -141,7 +143,7 @@ TUG.BG.draw = function()
     let h = Math.min( TUG.mHeight - y, TUG.BG.mCanvas.height - sy );
     let sx = TUG.BG.mX;
     for( let x =0; x < TUG.mWidth;){
-      while( sx >= 0 ){
+      while( sx >= TUG.BG.mCanvas.width ){
         sx -= TUG.BG.mCanvas.width;
       }
       while( sx < 0 ){
@@ -183,6 +185,11 @@ TUG.BG.setVal = function( x, y, val )
     TUG.BG.mData[ TUG.BG.getIndex( x, y ) ] );
 }
 
+TUG.TX.clear = function()
+{
+  TUG.TX.mG.clearRect( 0, 0, TUG.TX.mCanvas.width, TUG.TX.mCanvas.height );
+}
+
 TUG.TX.fillRect = function( x, y, width, height, style )
 {
   if( style ){
@@ -194,4 +201,18 @@ TUG.TX.fillRect = function( x, y, width, height, style )
 TUG.TX.fillText = function( text, x, y )
 {
   TUG.TX.mG.fillText( text, x * TUG.mScale, y * TUG.mScale);
+  if( TUG.mFondBoldV ){
+    TUG.TX.mG.fillText( text, x * TUG.mScale, y * TUG.mScale + TUG.mFontBoldV );
+  }
+}
+
+TUG.TX.strokeRect = function( x, y, width, height, style, line )
+{
+  if( style ){
+    TUG.TX.mG.strokeStyle = style;
+  }
+  if( line ){
+    TUG.TX.mG.lineWidth = line * TUG.mScale;
+  }
+  TUG.TX.mG.strokeRect( x * TUG.mScale, y * TUG.mScale, width * TUG.mScale, height * TUG.mScale)
 }
